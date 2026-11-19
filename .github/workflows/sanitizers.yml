@@ -15,7 +15,7 @@ jobs:
     name: AddressSanitizer (macOS)
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: test with address sanitizer
         run: swift test --sanitize=address -Xswiftc -warnings-as-errors
 
@@ -23,7 +23,7 @@ jobs:
     name: UndefinedBehaviorSanitizer (macOS)
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: test with undefined behavior sanitizer
         run: |
           TOOLCHAIN_PATH="$(swiftc -print-target-info | grep -o '/.*swift.*\.xctoolchain' | head -1 || true)"
@@ -41,6 +41,6 @@ jobs:
     name: ThreadSanitizer (macOS)
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: test with thread sanitizer
         run: swift test --sanitize=thread -Xswiftc -warnings-as-errors
