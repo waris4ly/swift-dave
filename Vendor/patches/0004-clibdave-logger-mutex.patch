@@ -1,0 +1,20 @@
+--- a/Sources/CLibDave/src/logger.cpp
++++ b/Sources/CLibDave/src/logger.cpp
+@@ -4,8 +4,10 @@
+ #include <cstring>
+ #include <iostream>
++#include <mutex>
+
+ namespace discord {
+ namespace dave {
+
+ std::atomic<LogSink> gLogSink = nullptr;
++static std::mutex gLogMutex;
+
+ void SetLogSink(LogSink sink)
+@@ -43,4 +45,5 @@ LogStreamer::~LogStreamer()
+         if (auto separator = strrchr(file, '/')) {
+             file = separator + 1;
+         }
++        std::lock_guard<std::mutex> lock(gLogMutex);
+         std::cout << "(" << file << ":" << line_ << ") " << logLine << std::endl;

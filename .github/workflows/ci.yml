@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  lint-and-check:
+    name: Lint & Strict Checks
+    runs-on: ubuntu-latest
+    container: swift:6.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint
+        run: bash scripts/lint.bash
+      - name: Check Banned Patterns
+        run: bash scripts/check-banned.bash
+      - name: Check Vendor Tree
+        run: bash scripts/check-vendor.bash
+
+  macos:
+    name: Build & Test (macOS)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: .build
+          key: ${{ runner.os }}-spm-${{ hashFiles('Package.swift') }}
+          restore-keys: ${{ runner.os }}-spm-
+      - name: Build
+        run: swift build -Xswiftc -warnings-as-errors
+      - name: Test
+        run: swift test -Xswiftc -warnings-as-errors
+      - name: Check Symbol Prefixing
+        run: bash scripts/check-symbols.bash
+      - name: Test with Address Sanitizer (ASAN)
+        run: swift test --sanitize=address -Xswiftc -warnings-as-errors
+      - name: Test with Thread Sanitizer (TSAN)
+        run: swift test --sanitize=thread -Xswiftc -warnings-as-errors
+      - name: Build Documentation
+        run: bash scripts/build-docs.bash
+      - name: Conflict Check
+        run: cd Examples/ConflictCheck && swift build -Xswiftc -warnings-as-errors && swift run ConflictCheck
+      - name: Loopback Demo
+        run: cd Examples/LoopbackDemo && swift build -Xswiftc -warnings-as-errors && swift run LoopbackDemo
+
+  linux:
+    name: Build & Test (Linux)
+    runs-on: ubuntu-latest
+    container: swift:6.1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: .build
+          key: linux-spm-${{ hashFiles('Package.swift') }}
+          restore-keys: linux-spm-
+      - name: Build
+        run: swift build -Xswiftc -warnings-as-errors
+      - name: Test
+        run: swift test -Xswiftc -warnings-as-errors
