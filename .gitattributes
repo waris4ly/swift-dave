@@ -1,0 +1,15 @@
+# Mark vendored trees so GitHub does not count them as project language
+Sources/CLibDave/**   linguist-vendored
+Sources/CMLSPP/**     linguist-vendored
+Sources/CBoringSSL/** linguist-vendored
+
+# Treat all Swift source as text with LF line endings
+*.swift text eol=lf
+*.h     text eol=lf
+*.cpp   text eol=lf
+*.c     text eol=lf
+*.md    text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.json  text eol=lf
+*.sh    text eol=lf

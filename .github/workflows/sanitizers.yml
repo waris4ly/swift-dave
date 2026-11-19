@@ -1,0 +1,46 @@
+name: Sanitizers
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  asan:
+    name: AddressSanitizer (macOS)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: test with address sanitizer
+        run: swift test --sanitize=address -Xswiftc -warnings-as-errors
+
+  ubsan:
+    name: UndefinedBehaviorSanitizer (macOS)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: test with undefined behavior sanitizer
+        run: |
+          TOOLCHAIN_PATH="$(swiftc -print-target-info | grep -o '/.*swift.*\.xctoolchain' | head -1 || true)"
+          UBSAN_DYLIB=""
+          if [ -n "$TOOLCHAIN_PATH" ]; then
+            UBSAN_DYLIB="$(find "$TOOLCHAIN_PATH" -name "libclang_rt.ubsan_osx_dynamic.dylib" 2>/dev/null | head -1 || true)"
+          fi
+          if [ -n "$UBSAN_DYLIB" ]; then
+            swift test --sanitize=undefined -Xswiftc -warnings-as-errors -Xlinker "$UBSAN_DYLIB"
+          else
+            swift test --sanitize=undefined -Xswiftc -warnings-as-errors
+          fi
+
+  tsan:
+    name: ThreadSanitizer (macOS)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: test with thread sanitizer
+        run: swift test --sanitize=thread -Xswiftc -warnings-as-errors

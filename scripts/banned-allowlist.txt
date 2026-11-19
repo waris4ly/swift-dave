@@ -1,0 +1,4 @@
+# allowlist for check-banned.sh
+# one grep pattern per line; every entry needs explicit user approval
+# format: a grep -v pattern that removes matching lines from the hit list
+# starts empty — do not add entries without approval

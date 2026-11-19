@@ -1,0 +1,22 @@
+name: Vendor Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-vendor:
+    name: Check Vendored Code
+    runs-on: ubuntu-latest
+    container: swift:6.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Vendored Structure
+        run: scripts/check-vendor.sh
+      - name: Verify Symbol Prefixing
+        run: |
+          # build first
+          swift build
+          scripts/check-symbols.sh

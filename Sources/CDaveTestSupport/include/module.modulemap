@@ -1,0 +1,4 @@
+module CDaveTestSupport {
+    header "DaveTestSupport.h"
+    export *
+}

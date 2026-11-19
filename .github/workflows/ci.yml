@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format-lint:
+    name: Format & Lint
+    runs-on: ubuntu-latest
+    container: swift:6.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: lint
+        run: scripts/lint.sh
+
+  banned:
+    name: Banned patterns
+    runs-on: ubuntu-latest
+    container: swift:6.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: check
+        run: scripts/check-banned.sh
+
+  build-test-macos:
+    name: Build & Test (macOS arm64)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: .build
+          key: ${{ runner.os }}-spm-${{ hashFiles('Package.swift') }}
+          restore-keys: ${{ runner.os }}-spm-
+      - name: build
+        run: swift build -Xswiftc -warnings-as-errors
+      - name: test
+        run: swift test -Xswiftc -warnings-as-errors
+
+  build-test-linux-x86:
+    name: Build & Test (Linux x86_64)
+    runs-on: ubuntu-latest
+    container: swift:6.1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: .build
+          key: linux-x86-spm-${{ hashFiles('Package.swift') }}
+          restore-keys: linux-x86-spm-
+      - name: build
+        run: swift build -Xswiftc -warnings-as-errors
+      - name: test
+        run: swift test -Xswiftc -warnings-as-errors
+
+  build-test-linux-arm64:
+    name: Build & Test (Linux aarch64)
+    runs-on: ubuntu-24.04-arm
+    container: swift:6.1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: .build
+          key: linux-arm64-spm-${{ hashFiles('Package.swift') }}
+          restore-keys: linux-arm64-spm-
+      - name: build
+        run: swift build -Xswiftc -warnings-as-errors
+      - name: test
+        run: swift test -Xswiftc -warnings-as-errors
+
+  examples:
+    name: Examples Check
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: conflict check
+        run: cd Examples/ConflictCheck && swift build -Xswiftc -warnings-as-errors && swift run ConflictCheck
+      - name: loopback demo
+        run: cd Examples/LoopbackDemo && swift build -Xswiftc -warnings-as-errors && swift run LoopbackDemo
